@@ -115,10 +115,6 @@ prefered if speed is no relevance.
 
 You will need this for utf8.
 
-=pkg Template::Stash::XS
-
-A faster stash for L<Template>, written in XS (so needs get compiled).
-
 =pkg Text::Xslate 1.5018
 
 The fastest template engine, but needs a bit more understandment, but can be
