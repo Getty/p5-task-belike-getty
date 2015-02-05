@@ -11,32 +11,32 @@ You should have at least 5.10.1
 
 =pkgroup Useful Command-Line Tools
 
-=pkg App::Ack 2.00
+=pkg App::Ack
 
 Because grep is outdated
 
 =pkgroup Working with CPAN distributions
 
-=pkg App::cpanminus 1.5018
+=pkg App::cpanminus
 
-Because I dont want useless crap on my screen.
+Because I don't want useless crap on my screen.
 
-=pkg App::CPAN::Fresh 0.10
+=pkg App::CPAN::Fresh
 
 Installs latest version of the dist... for the people who cant wait to get
 their own release on other machines ;)
 
 =pkgroup Object orientated working
 
-=pkg Moo 1.000003
+=pkg Moo
 
 Cause it cost nothing and makes the code nice.
 
-=pkg MooX 0.101
+=pkg MooX
 
 An easier way to load Moo and MooX plugins for it.
 
-=pkg Moose 2.0604
+=pkg Moose
 
 The ultimate power in the universe to make classes
 
@@ -50,12 +50,12 @@ Sometimes something else wanna be a Moose!
 
 Depend attributes on environment variables in L<Moo>.
 
-=pkg MooX::Cmd 0.002
+=pkg MooX::Cmd
 
 L<MooX::Cmd> together with L<MooX::Options> gives you the ability to make easy
 multicommand application.
 
-=pkg MooX::Options 3.71
+=pkg MooX::Options
 
 =pkg MooseX::Getopt
 
@@ -68,22 +68,22 @@ Make nice progress bars in your application.
 
 =pkgroup Event driven, non-blocking environment
 
-=pkg Reflex 0.098
+=pkg Reflex
 
 Because L<POE> is really outdated (and too complex)
 
-=pkg Reflexive::Client::HTTP 0.003
+=pkg Reflexive::Client::HTTP
 
 Never saw a non-blocking environment which not used some HTTP client
 somewhere in the process hehe :).
 
 =pkgroup Database
 
-=pkg DBIx::Class 0.08200
+=pkg DBIx::Class
 
 There is no other way to access a database
 
-=pkg DBIx::Class::Candy 0.002101
+=pkg DBIx::Class::Candy
 
 Use this to define your L<DBIx::Class> result classes.
 
@@ -91,11 +91,11 @@ Use this to define your L<DBIx::Class> result classes.
 
 =pkg DBIx::Class::TimeStamp
 
-=pkg DBIx::Class::EncodedColumn 0.00011
+=pkg DBIx::Class::EncodedColumn
 
 =pkg DBIx::Class::InflateColumn::DateTime
 
-=pkg DBIx::Class::InflateColumn::Serializer 0.03
+=pkg DBIx::Class::InflateColumn::Serializer
 
 Very useful in combination with L<JSON> to get a simple random data storage
 field. 
@@ -106,36 +106,18 @@ Best way to get a transparent (one way) encrypted field, like password.
 
 =pkgroup Templating
 
-=pkg Template 2.22
-
-A very good easy to understand templating system. Its widly used and just be
-prefered if speed is no relevance.
-
-=pkg Template::Provider::Encoding
-
-You will need this for utf8.
-
-=pkg Text::Xslate 1.5018
+=pkg Text::Xslate
 
 The fastest template engine, but needs a bit more understandment, but can be
 used with many template syntaxes (more or less identical of course).
 
 =pkgroup Web frameworks
 
-=pkg FCGI 0.74
-
-Don't do CGI... please.... its dead.
-
-=pkg Catalyst::Runtime 5.90016
+=pkg Catalyst::Runtime
 
 For serious web application development
 
-=pkg Catalyst::Plugin::AutoCRUD 2.122460
-
-Giving an "auto of the box" SQL datamanager via a L<DBIx::Class> managed sql
-source. Very cool.
-
-=pkg Catalyst::Plugin::ChainedURI 0.002
+=pkg Catalyst::Plugin::ChainedURI
 
 A more simple way to get a specific url in L<Catalyst> then with the given
 tools inside of L<Catalyst>.
@@ -170,11 +152,15 @@ Make a crash more useful, show a stack trace.
 
 =pkg Catalyst::View::Email::Template
 
-=pkg Web::Simple 0.020
+=pkg Yeb
 
-For the simple stuff
+A very simple straightforward Web DSL, perfect for beginners.s
 
-=pkg Plack 1.0004
+=pkg Web::Simple
+
+For the simple stuff (more for experienced users)
+
+=pkg Plack
 
 The base for all those frameworks, and the best way to make your own base
 for a webframework, even tho, you normally should be happy with L<Web::Simple>
@@ -185,15 +171,33 @@ L<Plack> and PSGI. See L<http://plackperl.org/>.
 
 The so far best debugging console from the author of L<Plack> directly.
 
+=pkgroup Web Development Helper
+
+=pkg CSS::Minifier::XS
+
+=pkg JavaScript::Minifier
+
+=pkg Twiggy::Server
+
+An AnyEvent webserver which allows to make websocket servers.
+
+=pkg PocketIO
+
+socket.io compatible websocket implementation.
+
 =pkgroup Validation
 
-=pkg Email::Valid 0.185
+=pkg Syccess
+
+A very simple concept to validate hashs based on any way you want.
+
+=pkg Email::Valid
 
 Best thing so far to check for a valid email.
 
 =pkgroup Translation
 
-=pkg Locale::Simple 0.002
+=pkg Locale::Simple
 
 A simple way to integrate B<gettext> translations into Javascript and Perl with
 the same API. It has anything included you need, you just need to have the
@@ -201,17 +205,24 @@ B<gettext> tools installed. You can check for a tool C<msgfmt> that is inside
 there, if you are unsure, if you installed the proper gettext package of your
 distribution.
 
+=pkgroup Installation Tools
+
+=pkg Installer
+
+Install a giant group of requirements (of any kind) automatically into one
+directory.
+
 =pkgroup Tools for authoring CPAN Distributions
 
-=pkg Dist::Zilla 4
+=pkg Dist::Zilla
 
-=pkg Dist::Zilla::PluginBundle::GETTY 0.003
+=pkg Dist::Zilla::PluginBundle::Author::GETTY
 
 This pluginbundle gives you directly all L<Dist::Zilla> plugins I use. Its a
 package that tries to be very efficient. Many people dislike that it generates
 the changes out of the git log. It is btw also used to generate this Task.
 
-=pkg File::ShareDir::ProjectDistDir 0.3.2
+=pkg File::ShareDir::ProjectDistDir
 
 Essential for working sane with the share directory of a distribution in
 development context.
@@ -221,10 +232,6 @@ development context.
 =pkg Test::More
 
 Simple, straightforward, thats what you need.
-
-=pkg Test::LoadAllModules
-
-Easy way to have a test for checking that all modules compile at least.
 
 =pkg Test::Dirs
 
@@ -236,17 +243,17 @@ For getting temporary directories. Very handy for tests.
 
 =pkgroup Making your own DarkPAN / GreyPAN
 
-=pkg CPAN::Repository 0.007
+=pkg CPAN::Repository
 
-=pkg Dist::Data 0.003
+=pkg Dist::Data
 
-=pkg Module::Data 0.006
+=pkg Module::Data
 
-=pkg Path::ScanINC 0.002
+=pkg Path::ScanINC
 
 =pkgroup Other Libraries I Use
 
-=pkg Data::Printer 0.33
+=pkg Data::Printer
 
 Nicest debugging output ever.
 
@@ -254,41 +261,41 @@ Nicest debugging output ever.
 
 Working with timestamps is just wrong.
 
-=pkg DateTime::Format::Epoch 0.13
+=pkg DateTime::Format::Epoch
 
 As reference to remind that you can find YOUR specific L<DateTime> string
 definition out of the many L<https://metacpan.org/search?q=DateTime%3A%3AFormat%3A%3A|DateTime::Format:: distributions>.
 
-=pkg DateTime::Format::Strptime 1.52
+=pkg DateTime::Format::Strptime
 
 A very flexible format handler, if you really cant find what you need.
 
-=pkg DateTime::Format::Human::Duration 0.60
+=pkg DateTime::Format::Human::Duration
 
 A good way to display a time duration to humans.
 
-=pkg JSON 2.53
+=pkg JSON
 
 The most effective data storage way ...
 
-=pkg JSON::XS 2.33
+=pkg JSON::MaybeXS
 
 ... and make it quick!
 
-=pkg YAML 0.84
+=pkg YAML
 
 If you want the data in the worst case created or modified by humans, then
 this is the way to go.
 
-=pkg Path::Class 0.26
+=pkg Path::Tiny
 
-The most simple way to work with path and file names. Highly recommended.
+=pkg Path::Class
 
-=pkg IO::All 0.46
+=pkg IO::All
 
 The best sugar to access files and their data.
 
-=pkg Config::INI 0.019
+=pkg Config::INI
 
 I like INI files.... dont hate me.
 
@@ -297,7 +304,7 @@ I like INI files.... dont hate me.
 The most heavy overall debugging possible. Try it out once, to know what you
 have.
 
-=pkg Scalar::Util 1.18
+=pkg Scalar::Util
 
 Nice toolset, check it out and get it known.
 
