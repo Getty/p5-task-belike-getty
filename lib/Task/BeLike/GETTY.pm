@@ -264,7 +264,7 @@ Working with timestamps is just wrong.
 =pkg DateTime::Format::Epoch
 
 As reference to remind that you can find YOUR specific L<DateTime> string
-definition out of the many L<https://metacpan.org/search?q=DateTime%3A%3AFormat%3A%3A|DateTime::Format:: distributions>.
+definition out of the many L<DateTime::Format:: distributions|https://metacpan.org/search?q=DateTime%3A%3AFormat%3A%3A>.
 
 =pkg DateTime::Format::Strptime
 
