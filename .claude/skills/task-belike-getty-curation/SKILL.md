@@ -10,25 +10,39 @@ the runtime requirements; everything else is generated from them.
 
 ## What earns a place
 
-An entry is a **choice**: something Getty's distributions picked where there
-was something else to pick. The list holds:
+An entry is something Getty **stands for**: a choice his distributions made
+where there was something else to pick, or a distribution of his own he wants
+in use. The list holds:
 
-- **Patterns across the fleet** — a distribution used on purpose by several
-  units in `misc/fingerprint` (start looking at 3; a family counts once).
-- **Getty's own pillars on CPAN** — Langertha, DBIO, Net::Async::MCP,
-  Kubernetes::REST, IO::K8s, Locale::Simple, App::karr and the plugin bundle.
-  (MCP itself is SRI's; it is on the list because the MCP servers use it.)
+- **Getty's standard across the fleet** — `misc/fingerprint` shows where to
+  look (start at 3 units; a family counts once), Getty decides what is his
+  standard. What every distribution needs anyway — namespace cleaners, JSON
+  backends, database drivers, test helpers — comes with the dependencies.
+- **Getty's own distributions, each in its own right**, also when another
+  entry brings it along:
+  - pillars: Langertha, DBIO, Net::Async::MCP, Kubernetes::REST, IO::K8s,
+    Locale::Simple, MooX::Cmd, the plugin bundle;
+  - tools he runs: App::karr, Skilletor, App::codefork, MCP::Run,
+    Langertha::Knarr, Langertha::Raider;
+  - foundations others build on: Net::Async::MCP::Server,
+    Net::Async::Kubernetes, Rex::LibSSH, WWW::Chain;
+  - the AI ecosystem around Langertha: Langertha::Skeid,
+    Net::Async::WebSearch, WWW::Crawl4AI, SQLite::VecDB.
+
+  An API client for one service is installed by whoever talks to that
+  service. (MCP itself is SRI's; it is on the list because the MCP servers
+  use it.)
 - **Daily tools** no `cpanfile` names: Data::Printer, Devel::NYTProf,
   App::cpanminus.
 - **The stack of the newest web application** (Catalyst, Xslate,
   Locale::Simple), described by what it does, never by the private project's
   name.
 
-It leaves to its dependencies what arrives through another entry, to perl
-what is core (unless choosing it is the point, like Test::More), and to
-`cpanm` on demand what needs a system library (DBD::Pg) or belongs to one
-repository only. Every entry is in the CPAN index — `misc/fingerprint` exits
-1 otherwise.
+Everything else that arrives through another entry comes with the
+dependencies, perl brings what is core (unless choosing it is the point, like
+Test::More), and `cpanm` on demand installs what needs a system library
+(DBD::Pg) or belongs to one repository only. Every entry is in the CPAN
+index — `misc/fingerprint` exits 1 otherwise.
 
 ## Format
 
@@ -56,7 +70,9 @@ power in the universe to make classes."). The `# ABSTRACT` stays ASCII.
 
 1. `misc/fingerprint --cpan` (from the checkout, siblings under `~/dev`):
    counts per entry, then candidates.
-2. Decide, then edit the `=pkg` list. A hook runs `misc/readme`, which
+2. Propose; Getty decides. The counts are evidence, the choice is his — a
+   multi-select of candidates, grouped by kind, gets it in one round. Then
+   edit the `=pkg` list. A hook runs `misc/readme`, which
    rewrites the README table from the list; CI runs `misc/readme --check`.
 3. Add the change to `Changes` under `{{$NEXT}}`.
 4. `dzil build && dzil test --release`, then commit (skill

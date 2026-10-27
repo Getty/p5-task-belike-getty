@@ -14,16 +14,20 @@ __END__
 
 =head1 DESCRIPTION
 
-This Task installs what my distributions are made of. Not everything they
-depend on: the choices that make a distribution of mine look like one, picked
-where there was something else to pick.
+This Task installs what my distributions are made of and what I stand for:
+the choices that make a distribution of mine look like one, picked where there
+was something else to pick, and the distributions of my own I want to see in
+use.
 
 The list starts with counting: F<misc/fingerprint>, shipped with this Task,
 reads the F<cpanfile> of every distribution I maintain, and I keep what
-several of them chose on purpose. Whatever only arrives as the dependency of
-something else on the list stays out, and so do core modules, unless choosing
-one is the point. On top come the tools I work with every day, which no
-F<cpanfile> names, and the stack of my newest web application.
+several of them chose on purpose and what I would choose again. What every
+distribution needs anyway comes with the dependencies, and so do core
+modules, unless choosing one is the point. On top come the tools I work with
+every day, which no F<cpanfile> names, the stack of my newest web application,
+and my own distributions, each in its own right: the tools I run, the
+foundations other distributions build on, and the agents and services around
+L<Langertha>.
 
 A few patterns run through all of it:
 
@@ -64,12 +68,7 @@ Develop on a current perl anyway.
 =pkg Moo
 
 My default object system. Cheap to load, and it turns into a L<Moose> class
-the moment something asks for the meta-object. A Moo class ends its imports
-with L<namespace::clean>.
-
-=pkg namespace::clean
-
-Keeps the imported functions of a L<Moo> class from turning into methods.
+the moment something asks for the meta-object.
 
 =pkg Type::Tiny
 
@@ -80,12 +79,8 @@ Where a type pins down something real - not on every attribute by reflex.
 
 The ultimate power in the universe to make classes. I reach for it when the
 meta-object protocol earns its keep: L<Dist::Zilla> plugins, DSLs built with
-L<Moose::Exporter>, L<Langertha> and L<DBIO>. A Moose class uses
-L<namespace::autoclean> and ends with C<make_immutable>.
-
-=pkg namespace::autoclean
-
-The L<Moose> side of L<namespace::clean>.
+L<Moose::Exporter>, L<Langertha> and L<DBIO>. A Moose class ends with
+C<make_immutable>.
 
 =pkg MooseX::NonMoose
 
@@ -104,19 +99,12 @@ C<use>.
 
 JSON, always through this one - never L<JSON::PP> or L<JSON::XS> directly.
 Encoders get C<canonical> and C<convert_blessed>, so the same data gives the
-same bytes on every run.
-
-=pkg Cpanel::JSON::XS
-
-... and make it quick! The backend L<JSON::MaybeXS> picks first.
-
-=pkg YAML::PP
-
-YAML that humans write, read by a parser that follows the spec.
+same bytes on every run. ... and make it quick! Wherever there is a compiler,
+it brings L<Cpanel::JSON::XS> along and picks it first.
 
 =pkg YAML::XS
 
-YAML that machines write, by the megabyte - Kubernetes manifests.
+YAML through libyaml, quick enough for Kubernetes manifests by the megabyte.
 
 =pkg Path::Tiny
 
@@ -182,6 +170,13 @@ L<Net::Async::HTTP>.
 Building URLs and query strings. Still dislike the API somehow, still use it
 everywhere.
 
+=pkg WWW::Chain
+
+A login and the pages behind it, a paginated fetch: requests that depend on
+the answers to earlier ones, as one object. The chain says which
+L<HTTP::Request> comes next, and whoever runs it - L<LWP::UserAgent> or an
+event loop - sends it.
+
 =pkg Crypt::JWT
 
 Checking the tokens of OpenID Connect providers like Keycloak, Authentik and
@@ -218,6 +213,10 @@ TLS for L<IO::Async> and L<Net::Async::HTTP>.
 
 PSGI underneath everything that answers HTTP - middleware, small servers and
 the applications below. See L<https://plackperl.org/>.
+
+=pkg Web::Simple
+
+For the simple stuff (more for experienced users).
 
 =pkg Catalyst::Runtime
 
@@ -258,22 +257,12 @@ Translations with B<gettext>, with the same API in Perl, JavaScript and a few
 more languages. It brings everything else it needs; only the B<gettext> tools
 have to be installed - if C<msgfmt> runs, you are set.
 
-=pkg Mojolicious
-
-Where a server is built on Mojo - the L<MCP> servers are.
-
 =pkgroup Databases
 
 =pkg DBIO
 
 Relational mapping on top of L<DBI>, a modern fork of L<DBIx::Class>, with a
 distribution per database driver.
-
-=pkg DBD::SQLite
-
-The database that is always there - for tests and for small tools.
-PostgreSQL is the other one I reach for, through L<DBD::Pg>; it needs the
-PostgreSQL client library, so it stays off this list.
 
 =pkgroup AI and agents
 
@@ -282,14 +271,62 @@ PostgreSQL client library, so it stays off this list.
 One API for many LLM providers - OpenAI, Anthropic, Gemini, Ollama, vLLM
 and more - with streaming, embeddings and MCP tool calls.
 
+=pkg Langertha::Knarr
+
+C<knarr>: one hub in front of any backend - a L<Langertha::Raider>, a plain
+Langertha engine, a remote agent - speaking the wire protocols of OpenAI,
+Anthropic, Ollama, A2A, ACP and AG-UI. Point Claude Code at it, and with
+Langfuse keys every call is traced.
+
+=pkg Langertha::Raider
+
+C<raider>: an autonomous agent on the command line, with files, shell, web
+search and MCP tools, on any provider Langertha speaks - and the agent engine
+underneath, for building your own.
+
+=pkg Langertha::Skeid
+
+One process in front of many LLM nodes: it routes by model and load, speaks
+OpenAI, Anthropic and Ollama to the clients, and writes a usage event for
+every request, priced for billing.
+
 =pkg MCP
 
 Model Context Protocol servers in Perl, on L<Mojolicious>.
+
+=pkg MCP::Run
+
+C<mcp-run-bash>: an MCP server with one tool that runs shell commands, and
+filters for more than thirty of them, so the model reads the essence instead
+of 900 lines of noise. The same filters come as a Claude Code hook,
+C<mcp-run-compress>.
 
 =pkg Net::Async::MCP
 
 The client side of MCP, on L<IO::Async> - for servers in Perl as well as for
 external ones over stdio.
+
+=pkg Net::Async::MCP::Server
+
+The server side, on L<IO::Async>: a base class for MCP servers, speaking the
+stateless revision of the spec.
+
+=pkg Net::Async::WebSearch
+
+One query to every search provider I register - DuckDuckGo, SearxNG, Brave,
+Serper and more - with the results deduplicated and merged. The web search
+of L<Langertha::Raider>.
+
+=pkg WWW::Crawl4AI
+
+A web page as Markdown for an agent, through Crawl4AI: it escalates from a
+plain fetch to a browser and a proxy until the page comes back, and tells
+which attempt won.
+
+=pkg SQLite::VecDB
+
+A vector database in one SQLite file, through sqlite-vec - with the
+embeddings made by L<Langertha>, if you like.
 
 =pkgroup Infrastructure
 
@@ -302,9 +339,19 @@ Talking to the Kubernetes API.
 The objects of the Kubernetes API as typed Perl classes, so what goes to the
 cluster has the types Kubernetes insists on.
 
+=pkg Net::Async::Kubernetes
+
+The non-blocking twin of L<Kubernetes::REST>, on L<IO::Async>: watches that
+reconnect on their own, exec, logs, port forwarding and a controller loop.
+
 =pkg Rex
 
 Deploying to machines, with the deployment written in Perl.
+
+=pkg Rex::LibSSH
+
+My connection for L<Rex>: plain SSH through libssh, so the other side needs
+no SFTP.
 
 =pkgroup Testing
 
@@ -312,10 +359,6 @@ Deploying to machines, with the deployment written in Perl.
 
 Simple, straightforward, that's what you need. Every test ends with
 C<done_testing>.
-
-=pkg Test::Exception
-
-Proving that something croaks, and with what message.
 
 =pkgroup Writing and releasing distributions
 
@@ -335,5 +378,16 @@ Because I don't want useless crap on my screen.
 
 A kanban board that lives in git refs: every repository carries its own, and
 my agents and I take the cards from it.
+
+=pkg Skilletor
+
+The skills, agents and rules my repositories share, installed from their
+sources and kept in sync - the Perl port of skilletor.
+
+=pkg App::codefork
+
+C<codefork>: renaming a project, a module or a namespace across a whole tree,
+in file names and contents, from a three-line config. The full diff comes
+first; nothing is written before C<apply>.
 
 =cut

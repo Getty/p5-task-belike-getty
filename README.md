@@ -11,16 +11,19 @@ cpanm Task::BeLike::GETTY
 ## Description
 
 `Task::BeLike::GETTY` has no code of its own. Installing it installs what my
-distributions are made of: not everything they depend on, but the choices that
-make a distribution of mine look like one, picked where there was something
-else to pick.
+distributions are made of and what I stand for: the choices that make a
+distribution of mine look like one, picked where there was something else to
+pick, and the distributions of my own I want to see in use.
 
 The list starts with counting: [`misc/fingerprint`](misc/fingerprint) reads
 the `cpanfile` of every distribution I maintain, and I keep what several of
-them chose on purpose. Whatever only arrives as the dependency of something
-else on the list stays out, and so do core modules, unless choosing one is the
-point. On top come the tools I work with every day, which no `cpanfile` names,
-and the stack of my newest web application.
+them chose on purpose and what I would choose again. What every distribution
+needs anyway comes with the dependencies, and so do core modules, unless
+choosing one is the point. On top come the tools I work with every day, which
+no `cpanfile` names, the stack of my newest web application, and my own
+distributions, each in its own right: the tools I run, the foundations other
+distributions build on, and the agents and services around
+[Langertha](https://metacpan.org/pod/Langertha).
 
 A few patterns run through all of it:
 
@@ -51,18 +54,18 @@ The reason for every entry is in the
 | Group | Modules |
 |---|---|
 | Perl itself | perl 5.20 or newer |
-| Objects and types | Moo, namespace::clean, Type::Tiny, Moose, namespace::autoclean, MooseX::NonMoose, Module::Runtime |
-| Data and files | JSON::MaybeXS, Cpanel::JSON::XS, YAML::PP, YAML::XS, Path::Tiny, File::ShareDir::ProjectDistDir, DateTime |
+| Objects and types | Moo, Type::Tiny, Moose, MooseX::NonMoose, Module::Runtime |
+| Data and files | JSON::MaybeXS, YAML::XS, Path::Tiny, File::ShareDir::ProjectDistDir, DateTime |
 | Logging and debugging | Log::Any, Data::Printer, Devel::NYTProf |
 | Command-line applications | MooX::Cmd, MooX::Options |
-| HTTP and APIs | LWP::UserAgent, LWP::Protocol::https, HTTP::Message, URI, Crypt::JWT |
+| HTTP and APIs | LWP::UserAgent, LWP::Protocol::https, HTTP::Message, URI, WWW::Chain, Crypt::JWT |
 | Non-blocking | IO::Async, Future, Future::AsyncAwait, Net::Async::HTTP, IO::Async::SSL |
-| Web applications | Plack, Catalyst::Runtime, Catalyst::Plugin::ChainedURI, Catalyst::Plugin::Session, Catalyst::Plugin::Session::State::Cookie, Catalyst::Plugin::Authentication, Catalyst::View::Xslate, Catalyst::View::JSON, Text::Xslate, Locale::Simple, Mojolicious |
-| Databases | DBIO, DBD::SQLite |
-| AI and agents | Langertha, MCP, Net::Async::MCP |
-| Infrastructure | Kubernetes::REST, IO::K8s, Rex |
-| Testing | Test::More, Test::Exception |
-| Writing and releasing distributions | Dist::Zilla, Dist::Zilla::PluginBundle::Author::GETTY, App::cpanminus, App::karr |
+| Web applications | Plack, Web::Simple, Catalyst::Runtime, Catalyst::Plugin::ChainedURI, Catalyst::Plugin::Session, Catalyst::Plugin::Session::State::Cookie, Catalyst::Plugin::Authentication, Catalyst::View::Xslate, Catalyst::View::JSON, Text::Xslate, Locale::Simple |
+| Databases | DBIO |
+| AI and agents | Langertha, Langertha::Knarr, Langertha::Raider, Langertha::Skeid, MCP, MCP::Run, Net::Async::MCP, Net::Async::MCP::Server, Net::Async::WebSearch, WWW::Crawl4AI, SQLite::VecDB |
+| Infrastructure | Kubernetes::REST, IO::K8s, Net::Async::Kubernetes, Rex, Rex::LibSSH |
+| Testing | Test::More |
+| Writing and releasing distributions | Dist::Zilla, Dist::Zilla::PluginBundle::Author::GETTY, App::cpanminus, App::karr, Skilletor, App::codefork |
 
 ## Keeping the list current
 

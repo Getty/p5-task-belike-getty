@@ -2,14 +2,17 @@ Revision history for Task-BeLike-GETTY
 
 {{$NEXT}}
   - Build the list from what my distributions use, counted from their
-    cpanfiles: Type::Tiny, Log::Any, YAML::PP, YAML::XS, Cpanel::JSON::XS,
+    cpanfiles, and from what I stand for: Type::Tiny, Log::Any, YAML::XS,
     IO::Async with Future::AsyncAwait and Net::Async::HTTP, Crypt::JWT,
-    Module::Runtime, Mojolicious, Catalyst::View::Xslate, DBIO, DBD::SQLite,
-    Langertha, MCP, Net::Async::MCP, Kubernetes::REST, IO::K8s, Rex,
-    Test::Exception and App::karr join Moo, Moose, JSON::MaybeXS, Path::Tiny,
-    LWP, Plack and Catalyst. The description names the patterns behind it.
+    WWW::Chain, Module::Runtime, Catalyst::View::Xslate, DBIO, Langertha with
+    Knarr, Raider and Skeid, MCP with MCP::Run, Net::Async::MCP with its
+    server side, Net::Async::WebSearch, WWW::Crawl4AI, SQLite::VecDB,
+    Kubernetes::REST, IO::K8s, Net::Async::Kubernetes, Rex with Rex::LibSSH,
+    App::karr, Skilletor and App::codefork join Moo, Moose, JSON::MaybeXS,
+    Path::Tiny, LWP, Plack, Web::Simple and Catalyst. The description names
+    the patterns behind it.
   - Drop what is no longer a pattern across my distributions: Reflex,
-    DBIx::Class and its components, Yeb, Web::Simple, PocketIO, Twiggy, the
+    DBIx::Class and its components, Yeb, PocketIO, Twiggy, the
     CSS and JavaScript minifiers, Syccess, Email::Valid, Installer, the
     DarkPAN tools, App::Ack, App::CPAN::Fresh, MooX, MooX::HasEnv,
     MooseX::Getopt, String::ProgressBar, JSON, YAML, Path::Class, IO::All,
