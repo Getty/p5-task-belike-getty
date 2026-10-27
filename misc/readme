@@ -1,0 +1,124 @@
+#!/usr/bin/env perl
+# Write the "What it installs" table of README.md from the =pkg list.
+use strict;
+use warnings;
+use FindBin;
+use Getopt::Long;
+use Pod::Usage;
+
+GetOptions(
+  'check' => \my $check,
+  'hook'  => \my $hook,
+  'help|h' => sub { pod2usage(-verbose => 2, -exitval => 0) },
+) or pod2usage(2);
+
+my $root   = "$FindBin::Bin/..";
+my $module = "$root/lib/Task/BeLike/GETTY.pm";
+my $readme = "$root/README.md";
+my $marker = '<!-- misc/readme writes this table from the =pkg list -->';
+
+my $table = render(groups($module));
+my $text  = slurp($readme);
+
+my ($before, $old, $after) = $text =~ m{\A(.*?\Q$marker\E\n)((?:\|[^\n]*\n)+)(.*)\z}s
+  or die "$readme: no table after the line '$marker'\n";
+
+if ($old eq $table) {
+  exit 0;
+}
+if ($check) {
+  print STDERR "README.md: the table differs from the =pkg list, run misc/readme\n";
+  exit 1;
+}
+
+open my $out, '>:raw', $readme or die "$readme: $!\n";
+print {$out} $before, $table, $after;
+close $out or die "$readme: $!\n";
+
+if ($hook) {
+  print '{"hookSpecificOutput":{"hookEventName":"PostToolUse",'
+    . '"additionalContext":"misc/readme rewrote the table in README.md from the =pkg list."}}'
+    . "\n";
+}
+else {
+  print "README.md: table rewritten\n";
+}
+exit 0;
+
+sub groups {
+  my ($file) = @_;
+  my @groups;
+  for my $line (split /\n/, slurp($file)) {
+    if ($line =~ /^=pkgroup\s+(.+?)\s*$/) {
+      push @groups, [ $1, [] ];
+    }
+    elsif ($line =~ /^=pkg\s+(\S+)(?:\s+(\S+))?\s*$/) {
+      @groups or die "$file: =pkg $1 before the first =pkgroup\n";
+      push @{ $groups[-1][1] }, entry($1, $2);
+    }
+  }
+  @groups or die "$file: no =pkgroup found\n";
+  return @groups;
+}
+
+sub entry {
+  my ($name, $version) = @_;
+  return $name unless defined $version;
+  if ($name eq 'perl' && $version =~ /^5\.(\d{3})/) {
+    $version = sprintf '5.%d', $1;
+  }
+  return "$name $version or newer";
+}
+
+sub render {
+  my @groups = @_;
+  my $table = "| Group | Modules |\n|---|---|\n";
+  $table .= sprintf "| %s | %s |\n", $_->[0], join ', ', @{ $_->[1] } for @groups;
+  return $table;
+}
+
+sub slurp {
+  my ($file) = @_;
+  open my $in, '<:raw', $file or die "$file: $!\n";
+  local $/;
+  return scalar <$in>;
+}
+
+__END__
+
+=head1 NAME
+
+misc/readme - write the README table from the =pkg list
+
+=head1 SYNOPSIS
+
+  misc/readme           # rewrite the table when the list changed
+  misc/readme --check   # exit 1 when the table differs from the list
+
+=head1 DESCRIPTION
+
+The groups and entries in F<lib/Task/BeLike/GETTY.pm> are the source; the
+table in F<README.md> is a copy of them. This script writes that copy below
+the marker line C<< <!-- misc/readme writes this table from the =pkg list --> >>
+and leaves the rest of the README as it is. It writes only when the table
+changed, so it can run after every edit.
+
+The Claude Code setup of this repository runs it as a hook after each file
+change, and CI runs it with C<--check>.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--check>
+
+Change nothing; exit with 1 when the table differs from the list.
+
+=item B<--hook>
+
+Report a rewrite as Claude Code hook output, so the session learns that
+F<README.md> changed.
+
+=back
+
+=cut

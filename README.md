@@ -47,6 +47,7 @@ A few patterns run through all of it:
 The reason for every entry is in the
 [documentation on MetaCPAN](https://metacpan.org/pod/Task::BeLike::GETTY).
 
+<!-- misc/readme writes this table from the =pkg list -->
 | Group | Modules |
 |---|---|
 | Perl itself | perl 5.20 or newer |

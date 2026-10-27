@@ -1,0 +1,29 @@
+{
+   "enabledPlugins" : {
+      "ruler@getty" : true,
+      "skilletor@getty" : true
+   },
+   "extraKnownMarketplaces" : {
+      "getty" : {
+         "source" : {
+            "repo" : "Getty/marketplace",
+            "source" : "github"
+         }
+      }
+   },
+   "hooks" : {
+      "PostToolUse" : [
+         {
+            "matcher" : "Edit|Write|MultiEdit",
+            "hooks" : [
+               {
+                  "type" : "command",
+                  "command" : "perl \"$CLAUDE_PROJECT_DIR/misc/readme\" --hook",
+                  "timeout" : 30,
+                  "statusMessage" : "README table from the =pkg list"
+               }
+            ]
+         }
+      ]
+   }
+}

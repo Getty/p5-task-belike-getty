@@ -1,0 +1,27 @@
+{
+  "gitignore": true,
+  "install": {
+    "skills": [
+      "getty-git-commit-style@getty",
+      "getty-perl-release-author-getty@karr"
+    ],
+    "rules": [
+      "engineering-discipline@getty",
+      "getty-cpan-release@getty",
+      "getty-publish-gate@getty"
+    ]
+  },
+  "sources": {
+    "getty": {
+      "git": "https://github.com/Getty/skills.git",
+      "ref": "main"
+    },
+    "karr": {
+      "git": "https://github.com/Getty/karr.git",
+      "ref": "main"
+    }
+  },
+  "targets": [
+    "claude"
+  ]
+}
