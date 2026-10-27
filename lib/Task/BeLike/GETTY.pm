@@ -1,347 +1,337 @@
-use strict;
-use warnings;
 package Task::BeLike::GETTY;
 # ABSTRACT: be like GETTY (without the insanity hopefully) -- use what drives his gears
 
+use strict;
+use warnings;
+
+1;
+
+__END__
+
+=head1 SYNOPSIS
+
+  cpanm Task::BeLike::GETTY
+
+=head1 DESCRIPTION
+
+This Task installs what my distributions are made of. Not everything they
+depend on: the choices that make a distribution of mine look like one, picked
+where there was something else to pick.
+
+The list comes from counting. I go through the F<cpanfile> of every
+distribution I maintain and keep what several of them chose on purpose. Core
+modules stay out, and so does whatever only arrives as the dependency of
+something else on this list.
+
+A few patterns run through all of it:
+
+=over 4
+
+=item *
+
+Classes are L<Moo> with L<Type::Tiny> types, JSON goes through
+L<JSON::MaybeXS>, every file through L<Path::Tiny>.
+
+=item *
+
+API clients come as twins: a blocking C<WWW::Something> on
+L<LWP::UserAgent>, and a non-blocking C<Net::Async::Something> on L<IO::Async>
+and L<Future::AsyncAwait>. Both speak the request and response classes of
+L<HTTP::Message>, and both log through L<Log::Any>.
+
+=item *
+
+Command-line tools are L<MooX::Cmd> subcommands with L<MooX::Options>.
+
+=item *
+
+Everything is built and released with L<Dist::Zilla> and
+L<my plugin bundle|Dist::Zilla::PluginBundle::Author::GETTY> - this Task too.
+
+=back
+
 =pkgroup Perl itself
 
-=pkg perl 5.010001
+=pkg perl 5.020
 
-You should have at least 5.10.1
+My distributions declare 5.20 as their floor. Develop on a current perl
+anyway.
 
-=pkgroup Useful Command-Line Tools
-
-=pkg App::Ack
-
-Because grep is outdated
-
-=pkgroup Working with CPAN distributions
-
-=pkg App::cpanminus
-
-Because I don't want useless crap on my screen.
-
-=pkg App::CPAN::Fresh
-
-Installs latest version of the dist... for the people who cant wait to get
-their own release on other machines ;)
-
-=pkgroup Object orientated working
+=pkgroup Objects and types
 
 =pkg Moo
 
-Cause it cost nothing and makes the code nice.
+My default object system. Cheap to load, and it turns into a L<Moose> class
+the moment something asks for the meta-object. A Moo class ends its imports
+with L<namespace::clean>.
 
-=pkg MooX
+=pkg namespace::clean
 
-An easier way to load Moo and MooX plugins for it.
+Keeps the imported functions of a L<Moo> class from turning into methods.
+
+=pkg Type::Tiny
+
+Types for attributes and parameters, mostly through L<Types::Standard>.
+Where a type pins down something real - not on every attribute by reflex.
 
 =pkg Moose
 
-The ultimate power in the universe to make classes
+The ultimate power in the universe to make classes. I reach for it when the
+meta-object protocol earns its keep: L<Dist::Zilla> plugins, DSLs built with
+L<Moose::Exporter>, L<Langertha> and L<DBIO>. A Moose class uses
+L<namespace::autoclean> and ends with C<make_immutable>.
+
+=pkg namespace::autoclean
+
+The L<Moose> side of L<namespace::clean>.
 
 =pkg MooseX::NonMoose
 
-Sometimes something else wanna be a Moose!
+Sometimes something else wants to be a Moose! For Moose classes that inherit
+from a class that is not one, like the result classes of L<DBIO>.
 
-=pkgroup Application Frameworks
+=pkg Module::Runtime
 
-=pkg MooX::HasEnv
+Loading a class whose name comes from configuration: engines, plugins,
+generated classes. A class name known while writing the code gets a plain
+C<use>.
 
-Depend attributes on environment variables in L<Moo>.
+=pkgroup Data and files
 
-=pkg MooX::Cmd
+=pkg JSON::MaybeXS
 
-L<MooX::Cmd> together with L<MooX::Options> gives you the ability to make easy
-multicommand application.
+JSON, always through this one - never L<JSON::PP> or L<JSON::XS> directly.
+Encoders get C<canonical> and C<convert_blessed>, so the same data gives the
+same bytes on every run.
 
-=pkg MooX::Options
+=pkg Cpanel::JSON::XS
 
-=pkg MooseX::Getopt
+... and make it quick! The backend L<JSON::MaybeXS> picks first.
 
-If you use L<Moose>, then you should go this way for making options possible
-in your application.
+=pkg YAML::PP
 
-=pkg String::ProgressBar
+YAML that humans write, read by a parser that follows the spec.
 
-Make nice progress bars in your application.
+=pkg YAML::XS
 
-=pkgroup Event driven, non-blocking environment
+YAML that machines write, by the megabyte - Kubernetes manifests.
 
-=pkg Reflex
+=pkg Path::Tiny
 
-Because L<POE> is really outdated (and too complex)
-
-=pkg Reflexive::Client::HTTP
-
-Never saw a non-blocking environment which not used some HTTP client
-somewhere in the process hehe :).
-
-=pkgroup Database
-
-=pkg DBIx::Class
-
-There is no other way to access a database
-
-=pkg DBIx::Class::Candy
-
-Use this to define your L<DBIx::Class> result classes.
-
-=pkg DBIx::Class::AlwaysUpdate
-
-=pkg DBIx::Class::TimeStamp
-
-=pkg DBIx::Class::EncodedColumn
-
-=pkg DBIx::Class::InflateColumn::DateTime
-
-=pkg DBIx::Class::InflateColumn::Serializer
-
-Very useful in combination with L<JSON> to get a simple random data storage
-field. 
-
-=pkg DBIx::Class::EncodedColumn::Crypt::Eksblowfish::Bcrypt
-
-Best way to get a transparent (one way) encrypted field, like password.
-
-=pkgroup Templating
-
-=pkg Text::Xslate
-
-The fastest template engine, but needs a bit more understandment, but can be
-used with many template syntaxes (more or less identical of course).
-
-=pkgroup Web frameworks
-
-=pkg Catalyst::Runtime
-
-For serious web application development
-
-=pkg Catalyst::Plugin::ChainedURI
-
-A more simple way to get a specific url in L<Catalyst> then with the given
-tools inside of L<Catalyst>.
-
-=pkg Catalyst::Plugin::CustomErrorMessage
-
-An error should be nice.
-
-=pkg Catalyst::Plugin::Session
-
-=pkg Catalyst::Plugin::Session::State::Cookie
-
-=pkg Catalyst::Plugin::Session::Store::File
-
-=pkg Catalyst::Plugin::Unicode::Encoding
-
-Never forget to load this. You want utf8.
-
-=pkg Catalyst::Authentication::Store::DBIx::Class
-
-=pkg Catalyst::Plugin::Authentication
-
-=pkg Catalyst::Plugin::Captcha
-
-=pkg Catalyst::Plugin::StackTrace
-
-Make a crash more useful, show a stack trace.
-
-=pkg Catalyst::View::TT
-
-=pkg Catalyst::View::JSON
-
-=pkg Catalyst::View::Email::Template
-
-=pkg Yeb
-
-A very simple straightforward Web DSL, perfect for beginners.s
-
-=pkg Web::Simple
-
-For the simple stuff (more for experienced users)
-
-=pkg Plack
-
-The base for all those frameworks, and the best way to make your own base
-for a webframework, even tho, you normally should be happy with L<Web::Simple>
-and L<Catalyst>, but it gives interesting background knowledge to know
-L<Plack> and PSGI. See L<http://plackperl.org/>.
-
-=pkg Plack::Middleware::Debug
-
-The so far best debugging console from the author of L<Plack> directly.
-
-=pkgroup Web Development Helper
-
-=pkg CSS::Minifier::XS
-
-=pkg JavaScript::Minifier
-
-=pkg Twiggy::Server
-
-An AnyEvent webserver which allows to make websocket servers.
-
-=pkg PocketIO
-
-socket.io compatible websocket implementation.
-
-=pkgroup Validation
-
-=pkg Syccess
-
-A very simple concept to validate hashs based on any way you want.
-
-=pkg Email::Valid
-
-Best thing so far to check for a valid email.
-
-=pkgroup Translation
-
-=pkg Locale::Simple
-
-A simple way to integrate B<gettext> translations into Javascript and Perl with
-the same API. It has anything included you need, you just need to have the
-B<gettext> tools installed. You can check for a tool C<msgfmt> that is inside
-there, if you are unsure, if you installed the proper gettext package of your
-distribution.
-
-=pkgroup Installation Tools
-
-=pkg Installer
-
-Install a giant group of requirements (of any kind) automatically into one
-directory.
-
-=pkgroup Tools for authoring CPAN Distributions
-
-=pkg Dist::Zilla
-
-=pkg Dist::Zilla::PluginBundle::Author::GETTY
-
-This pluginbundle gives you directly all L<Dist::Zilla> plugins I use. Its a
-package that tries to be very efficient. Many people dislike that it generates
-the changes out of the git log. It is btw also used to generate this Task.
+Every file operation. Not L<File::Spec>, not a bare C<open>.
 
 =pkg File::ShareDir::ProjectDistDir
 
-Essential for working sane with the share directory of a distribution in
-development context.
+Essential for working sane with the share directory of a distribution: the
+same code finds F<share/> in a checkout and after installation.
+
+=pkg DateTime
+
+Working with timestamps is just wrong, so let somebody else get it right.
+
+=pkgroup Logging and debugging
+
+=pkg Log::Any
+
+Libraries log through Log::Any and leave the output to the application that
+uses them.
+
+=pkg Data::Printer
+
+Nicest debugging output ever: C<use DDP; p $thing;>. Never L<Data::Dumper> in
+shipped code - a commented-out C<p> stays behind as a marker where debugging
+was needed.
+
+=pkg Devel::NYTProf
+
+The heaviest debugging possible. When something is slow, measure before
+guessing.
+
+=pkgroup Command-line applications
+
+=pkg MooX::Cmd
+
+Subcommands as classes, so a tool with ten commands stays ten small files.
+
+=pkg MooX::Options
+
+Options as attributes. Together with L<MooX::Cmd> that is the whole
+command line.
+
+=pkgroup HTTP and APIs
+
+=pkg LWP::UserAgent
+
+The blocking half of every API twin: C<WWW::Something> sends its requests
+through LWP.
+
+=pkg LWP::Protocol::https
+
+Because an API without https is no API.
+
+=pkg HTTP::Message
+
+L<HTTP::Request> and L<HTTP::Response>, shared by both halves of a twin: the
+blocking client hands them to L<LWP::UserAgent>, the non-blocking one to
+L<Net::Async::HTTP>.
+
+=pkg URI
+
+Building URLs and query strings. Still dislike the API somehow, still use it
+everywhere.
+
+=pkg Crypt::JWT
+
+Checking the tokens of OpenID Connect providers like Keycloak, Authentik and
+Zitadel.
+
+=pkgroup Non-blocking
+
+=pkg IO::Async
+
+The event loop under everything non-blocking. C<Net::Async::Something> is the
+twin of C<WWW::Something>, written on IO::Async.
+
+=pkg Future
+
+What every non-blocking method returns.
+
+=pkg Future::AsyncAwait
+
+C<async> and C<await>, so a chain of futures reads like the blocking code it
+replaces.
+
+=pkg Net::Async::HTTP
+
+HTTP for L<IO::Async>, speaking the same L<HTTP::Request> and
+L<HTTP::Response> as the blocking twin.
+
+=pkg IO::Async::SSL
+
+TLS for L<IO::Async> and L<Net::Async::HTTP>.
+
+=pkgroup Web applications
+
+=pkg Plack
+
+PSGI underneath everything that answers HTTP - middleware, small servers and
+the applications below. See L<https://plackperl.org/>.
+
+=pkg Catalyst::Runtime
+
+For serious web application development. Still.
+
+=pkg Catalyst::Plugin::ChainedURI
+
+A simpler way to get the URL of a chained action than with the tools inside
+L<Catalyst>.
+
+=pkg Catalyst::Plugin::Session
+
+Sessions, ...
+
+=pkg Catalyst::Plugin::Session::State::Cookie
+
+... kept in a cookie.
+
+=pkg Catalyst::Plugin::Authentication
+
+Logins, with the user store and the credential check as separate pieces.
+
+=pkg Catalyst::View::Xslate
+
+L<Text::Xslate> as the view.
+
+=pkg Catalyst::View::JSON
+
+For the actions that answer in JSON.
+
+=pkg Text::Xslate
+
+The fastest template engine, and it speaks more than one template syntax.
+
+=pkg Locale::Simple
+
+Translations with B<gettext>, with the same API in Perl, JavaScript and a few
+more languages. It brings everything else it needs; only the B<gettext> tools
+have to be installed - if C<msgfmt> runs, you are set.
+
+=pkg Mojolicious
+
+Where a server is built on Mojo - the L<MCP> servers are.
+
+=pkgroup Databases
+
+=pkg DBIO
+
+Relational mapping on top of L<DBI>, a modern fork of L<DBIx::Class>, with a
+distribution per database driver.
+
+=pkg DBD::SQLite
+
+The database that is always there - for tests and for small tools.
+PostgreSQL is the other one I reach for, through L<DBD::Pg>; it needs the
+PostgreSQL client library, so it stays off this list.
+
+=pkgroup AI and agents
+
+=pkg Langertha
+
+One API for many LLM providers - OpenAI, Anthropic, Gemini, Ollama, vLLM
+and more - with streaming, embeddings and MCP tool calls.
+
+=pkg MCP
+
+Model Context Protocol servers in Perl, on L<Mojolicious>.
+
+=pkg Net::Async::MCP
+
+The client side of MCP, on L<IO::Async> - for servers in Perl as well as for
+external ones over stdio.
+
+=pkgroup Infrastructure
+
+=pkg Kubernetes::REST
+
+Talking to the Kubernetes API.
+
+=pkg IO::K8s
+
+The objects of the Kubernetes API as typed Perl classes, so what goes to the
+cluster has the types Kubernetes insists on.
+
+=pkg Rex
+
+Deploying to machines, with the deployment written in Perl.
 
 =pkgroup Testing
 
 =pkg Test::More
 
-Simple, straightforward, thats what you need.
+Simple, straightforward, that's what you need. Every test ends with
+C<done_testing>.
 
-=pkg Test::Dirs
+=pkg Test::Exception
 
-For comparing resulting directories.
+Proving that something croaks, and with what message.
 
-=pkg File::Temp
+=pkgroup Writing and releasing distributions
 
-For getting temporary directories. Very handy for tests.
+=pkg Dist::Zilla
 
-=pkgroup Making your own DarkPAN / GreyPAN
+Every distribution is built and released with it.
 
-=pkg CPAN::Repository
+=pkg Dist::Zilla::PluginBundle::Author::GETTY
 
-=pkg Dist::Data
+All the plugins I use, in one bundle. It builds this Task as well.
 
-=pkg Module::Data
+=pkg App::cpanminus
 
-=pkg Path::ScanINC
+Because I don't want useless crap on my screen.
 
-=pkgroup Other Libraries I Use
+=pkg App::karr
 
-=pkg Data::Printer
-
-Nicest debugging output ever.
-
-=pkg DateTime 0.77 provides CLDR support with fewest known bugs
-
-Working with timestamps is just wrong.
-
-=pkg DateTime::Format::Epoch
-
-As reference to remind that you can find YOUR specific L<DateTime> string
-definition out of the many L<DateTime::Format:: distributions|https://metacpan.org/search?q=DateTime%3A%3AFormat%3A%3A>.
-
-=pkg DateTime::Format::Strptime
-
-A very flexible format handler, if you really cant find what you need.
-
-=pkg DateTime::Format::Human::Duration
-
-A good way to display a time duration to humans.
-
-=pkg JSON
-
-The most effective data storage way ...
-
-=pkg JSON::MaybeXS
-
-... and make it quick!
-
-=pkg YAML
-
-If you want the data in the worst case created or modified by humans, then
-this is the way to go.
-
-=pkg Path::Tiny
-
-=pkg Path::Class
-
-=pkg IO::All
-
-The best sugar to access files and their data.
-
-=pkg Config::INI
-
-I like INI files.... dont hate me.
-
-=pkg Devel::NYTProf
-
-The most heavy overall debugging possible. Try it out once, to know what you
-have.
-
-=pkg Scalar::Util
-
-Nice toolset, check it out and get it known.
-
-=pkg Text::Markdown 1.0.24 has trust_list_start
-
-For making nice GitHub README and wiki pages.
-
-=pkg HTTP::Message
-
-You will need L<HTTP::Request> and L<HTTP::Response>. Use it with
-L<LWP::UserAgent> or L<Reflexive::Client::HTTP>.
-
-=pkg LWP::UserAgent
-
-A simple way to make a blocking HTTP request based on L<HTTP::Request>.
-
-=pkg URL::Encode
-
-URL encoding
-
-=pkg URI
-
-Handling URLs itself, making parameter and so on. Very useful, still dislike
-the API somehow.
-
-=pkgroup Sanity-Check
-
-These are just here to make sure other things work properly.
-
-=pkg Mozilla::CA
-
-=pkg Crypt::SSLeay
-
-=pkg LWP::Protocol::https
-
-=pkg IO::Socket::SSL
+A kanban board that lives in git refs: every repository carries its own, and
+my agents and I take the cards from it.
 
 =cut
-
-1;

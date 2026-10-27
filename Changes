@@ -1,6 +1,22 @@
 Revision history for Task-BeLike-GETTY
 
 {{$NEXT}}
+  - Build the list from what my distributions use, counted from their
+    cpanfiles: Type::Tiny, Log::Any, YAML::PP, YAML::XS, Cpanel::JSON::XS,
+    IO::Async with Future::AsyncAwait and Net::Async::HTTP, Crypt::JWT,
+    Module::Runtime, Mojolicious, Catalyst::View::Xslate, DBIO, DBD::SQLite,
+    Langertha, MCP, Net::Async::MCP, Kubernetes::REST, IO::K8s, Rex,
+    Test::Exception and App::karr join Moo, Moose, JSON::MaybeXS, Path::Tiny,
+    LWP, Plack and Catalyst. The description names the patterns behind it.
+  - Drop what is no longer a pattern across my distributions: Reflex,
+    DBIx::Class and its components, Yeb, Web::Simple, PocketIO, Twiggy, the
+    CSS and JavaScript minifiers, Syccess, Email::Valid, Installer, the
+    DarkPAN tools, App::Ack, App::CPAN::Fresh, MooX, MooX::HasEnv,
+    MooseX::Getopt, String::ProgressBar, JSON, YAML, Path::Class, IO::All,
+    Config::INI, Text::Markdown, URL::Encode, Test::Dirs, the DateTime
+    formatters and the TLS sanity modules.
+  - Require perl 5.20, the floor my distributions declare.
+  - Add a README.md.
   - Ship a LICENSE file with the Perl 5 licence text and a Changes file
     that records the earlier releases.
   - Test every push on GitHub Actions; the job installs the whole list and
