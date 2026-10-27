@@ -205,6 +205,20 @@ sub dists_of {
   my @modules = sort grep { /javascript:/i ? !( $unknown{$_} = 1 ) : 1 } @_;
   my %dist;
   while ( my @batch = splice @modules, 0, 200 ) {
+    my $hits = package_hits(@batch);
+    $dist{ $_->{_source}{module_name} } = $_->{_source}{distribution}
+      for @$hits;
+  }
+  return %dist;
+}
+
+# Now and then MetaCPAN answers a search with the hits of another request.
+# An answer counts when every hit is one of the modules asked for; otherwise
+# the request goes out again.
+sub package_hits {
+  my @batch = @_;
+  my %asked = map { $_ => 1 } @batch;
+  for my $try ( 1 .. 5 ) {
     my $res = $http->post(
       "$metacpan/package/_search",
       {
@@ -219,10 +233,13 @@ sub dists_of {
     die "MetaCPAN package index: $res->{status} $res->{reason}: "
       . substr( $res->{content} // q{}, 0, 300 ) . " (try --offline)\n"
       unless $res->{success};
-    $dist{ $_->{_source}{module_name} } = $_->{_source}{distribution}
-      for @{ $json->decode( $res->{content} )->{hits}{hits} };
+    my $hits = $json->decode( $res->{content} )->{hits}{hits};
+    return $hits
+      unless grep { !$asked{ $_->{_source}{module_name} // q{} } } @$hits;
+    sleep $try;
   }
-  return %dist;
+  die "MetaCPAN package index: five answers in a row belonged to other"
+    . " requests (try again, or --offline)\n";
 }
 
 sub entry {
