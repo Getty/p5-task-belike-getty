@@ -1,0 +1,26 @@
+Revision history for Task-BeLike-GETTY
+
+{{$NEXT}}
+  - Ship a LICENSE file with the Perl 5 licence text and a Changes file
+    that records the earlier releases.
+  - Test every push on GitHub Actions; the job installs the whole list and
+    so proves that every module in it still resolves on CPAN.
+
+20150205.000  2015-02-05 04:25:20Z
+  - Add Path::Tiny, JSON::MaybeXS, Yeb, Syccess, Installer, Twiggy, PocketIO
+    and the CSS/JavaScript minifiers.
+  - Follow the plugin bundle to its new name,
+    Dist::Zilla::PluginBundle::Author::GETTY.
+  - Drop Template Toolkit, FCGI, JSON::XS, Catalyst::Plugin::AutoCRUD and
+    Test::LoadAllModules, and the minimum versions of most entries.
+
+20130420.000  2013-04-20 23:23:48Z
+  - Drop Template::Stash::XS, which is not a distribution of its own.
+
+20121001.001  2012-10-01 03:35:47Z
+  - Grow the list to the Catalyst, DBIx::Class, templating, validation,
+    translation, testing and DarkPAN tools in daily use.
+
+20121001.000  2012-10-01 02:14:01Z
+  - First release: Moo and Moose, Reflex, DBIx::Class, Plack and Web::Simple,
+    Dist::Zilla with the GETTY plugin bundle, and the CPAN tooling around it.
