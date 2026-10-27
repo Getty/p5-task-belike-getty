@@ -15,7 +15,9 @@ Revision history for Task-BeLike-GETTY
     MooseX::Getopt, String::ProgressBar, JSON, YAML, Path::Class, IO::All,
     Config::INI, Text::Markdown, URL::Encode, Test::Dirs, the DateTime
     formatters and the TLS sanity modules.
-  - Require perl 5.20, the floor my distributions declare.
+  - Require perl 5.20, the minimum most of my distributions declare.
+  - Ship misc/fingerprint, which counts what my distributions use, by CPAN
+    distribution, and compares it with the list.
   - Add a README.md.
   - Ship a LICENSE file with the Perl 5 licence text and a Changes file
     that records the earlier releases.

@@ -18,10 +18,12 @@ This Task installs what my distributions are made of. Not everything they
 depend on: the choices that make a distribution of mine look like one, picked
 where there was something else to pick.
 
-The list comes from counting. I go through the F<cpanfile> of every
-distribution I maintain and keep what several of them chose on purpose. Core
-modules stay out, and so does whatever only arrives as the dependency of
-something else on this list.
+The list starts with counting: F<misc/fingerprint>, shipped with this Task,
+reads the F<cpanfile> of every distribution I maintain, and I keep what
+several of them chose on purpose. Whatever only arrives as the dependency of
+something else on the list stays out, and so do core modules, unless choosing
+one is the point. On top come the tools I work with every day, which no
+F<cpanfile> names, and the stack of my newest web application.
 
 A few patterns run through all of it:
 
@@ -54,8 +56,8 @@ L<my plugin bundle|Dist::Zilla::PluginBundle::Author::GETTY> - this Task too.
 
 =pkg perl 5.020
 
-My distributions declare 5.20 as their floor. Develop on a current perl
-anyway.
+Where my distributions declare a minimum perl, it is 5.20 for most of them.
+Develop on a current perl anyway.
 
 =pkgroup Objects and types
 

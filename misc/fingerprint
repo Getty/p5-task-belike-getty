@@ -1,0 +1,409 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use Getopt::Long qw( GetOptions );
+use HTTP::Tiny;
+use JSON::MaybeXS ();
+use Module::CoreList;
+use Module::CPANfile;
+use Path::Tiny qw( path );
+use Pod::Usage qw( pod2usage );
+
+my $checkout = path(__FILE__)->realpath->parent(2);
+my $task_pm  = $checkout->child(qw( lib Task BeLike GETTY.pm ));
+my $metacpan = 'https://fastapi.metacpan.org/v1';
+
+my %opt = (
+  root => $checkout->parent->stringify,
+  min  => 3,
+);
+GetOptions( \%opt, 'root=s', 'min=i', 'cpan', 'offline', 'json', 'verbose|v', 'help|h' )
+  or pod2usage(2);
+pod2usage( -verbose => 1 ) if $opt{help};
+pod2usage('--cpan needs the network, --offline forbids it') if $opt{cpan} && $opt{offline};
+
+my $json = JSON::MaybeXS->new(
+  utf8 => 1, canonical => 1, pretty => 1, convert_blessed => 1,
+);
+my $http = HTTP::Tiny->new( agent => 'Task-BeLike-GETTY-fingerprint/1', timeout => 30 );
+
+# --- what the distributions use ----------------------------------------------
+
+my @projects = find_projects( path( $opt{root} ) );
+die "no projects with a cpanfile under $opt{root}\n" unless @projects;
+
+my ( %provides, %needs, %perl_floor );
+for my $p (@projects) {
+  $provides{ $p->{unit} }{$_} = 1 for provides( $p->{dir} );
+  my ( $modules, $perl ) = requirements( $p->{dir} );
+  $needs{ $p->{unit} }{$_} = 1 for @$modules;
+  $perl_floor{ $perl // 'none' }++;
+}
+my %own = map { %$_ } values %provides;
+
+my @task = task_entries();
+
+# Count per CPAN distribution: Types::Standard counts for Type-Tiny,
+# HTTP::Request for HTTP-Message. Offline, or for a module the CPAN index does
+# not know, the module stands for itself.
+my %wanted = map { $_ => 1 } ( map { keys %$_ } values %needs ), ( map { $_->{module} } @task );
+my %dist_of = $opt{offline} ? () : dists_of( keys %wanted );
+sub dist { $dist_of{ $_[0] } // $_[0] }
+
+# A unit does not count as a user of what it provides itself.
+my %via;    # dist => module => unit => 1
+for my $unit ( keys %needs ) {
+  for my $module ( keys %{ $needs{$unit} } ) {
+    next if $provides{$unit}{$module};
+    $via{ dist($module) }{$module}{$unit} = 1;
+  }
+}
+
+# --- compare with the Task ---------------------------------------------------
+
+# A Task entry is marked by its own module: Test::More is core even though
+# Test-Simple is also used through Test2::V0, which is not.
+for my $t (@task) {
+  my $e = entry( dist( $t->{module} ) );
+  $t = {
+    %$e,
+    %$t,
+    in_task => 1,
+    core    => is_core( $t->{module} ),
+    own     => ( $own{ $t->{module} } || $e->{own} ) ? 1 : 0,
+    indexed => indexed( $t->{module} ),
+  };
+}
+my %task_dist = map { $_->{dist} => 1 } @task;
+
+my @candidates =
+  sort { $b->{count} <=> $a->{count} or $a->{dist} cmp $b->{dist} }
+  grep { !$_->{core} && $_->{count} >= $opt{min} }
+  map  { entry($_) }
+  grep { !$task_dist{$_} } keys %via;
+
+if ( $opt{cpan} ) {
+  my %cache;
+  $_->{cpan} = $cache{ $_->{dist} } //= dist_facts( $_->{dist} )
+    for grep { $_->{indexed} } @task, @candidates;
+}
+
+my %units = map { $_->{unit} => 1 } @projects;
+my $report = {
+  root       => $opt{root},
+  projects   => scalar @projects,
+  units      => scalar keys %units,
+  min        => $opt{min},
+  by         => $opt{offline} ? 'module' : 'distribution',
+  perl_floor => \%perl_floor,
+  task       => \@task,
+  candidates => \@candidates,
+};
+
+if   ( $opt{json} ) { print $json->encode($report) }
+else                { print_report($report) }
+
+exit( ( grep { defined $_->{indexed} && !$_->{indexed} } @task ) ? 1 : 0 );
+
+# --- helpers -----------------------------------------------------------------
+
+# Projects are directories with a cpanfile, one or two levels below the root.
+# A directory that is no project itself but holds projects is a family, and a
+# family counts as one unit. Directories starting with "_" or "." stay out.
+sub find_projects {
+  my ($root) = @_;
+  my @found;
+  for my $dir ( sort { $a->basename cmp $b->basename } grep { visible($_) } $root->children ) {
+    next if $dir->realpath eq $checkout;
+    if ( is_project($dir) ) {
+      push @found, { dir => $dir, unit => $dir->basename } if counts($dir);
+      next;
+    }
+    for my $sub ( sort { $a->basename cmp $b->basename } grep { visible($_) } $dir->children ) {
+      push @found, { dir => $sub, unit => $dir->basename }
+        if is_project($sub) && counts($sub);
+    }
+  }
+  return @found;
+}
+
+sub visible { $_[0]->is_dir && $_[0]->basename !~ /\A[._]/ }
+
+sub is_project { -e $_[0]->child('cpanfile') || -e $_[0]->child('dist.ini') }
+
+# Mine: a distribution built with my bundle or the DBIO one, or an application
+# without a dist.ini at all.
+sub counts {
+  my ($dir) = @_;
+  return 0 unless -e $dir->child('cpanfile');
+  my $ini = $dir->child('dist.ini');
+  return 1 unless -e $ini;
+  return $ini->slurp_raw =~ /\@(?:Author::GETTY|DBIO)\b/ ? 1 : 0;
+}
+
+sub provides {
+  my ($dir) = @_;
+  my $lib = $dir->child('lib');
+  return () unless $lib->is_dir;
+  my %package;
+  my $iter = $lib->iterator( { recurse => 1 } );
+  while ( my $file = $iter->() ) {
+    next unless $file->basename =~ /\.pm\z/ && $file->is_file;
+    for ( $file->lines_raw ) {
+      $package{$1} = 1 if /^\s*package\s+([A-Za-z_][\w:]*)/;
+    }
+  }
+  return keys %package;
+}
+
+# Runtime and test requirements from the cpanfile, without perl itself. The
+# tools around the code count too: the plugin bundle a dist.ini names brings
+# Dist::Zilla, and a .karr file means the repository works from a karr board.
+sub requirements {
+  my ($dir) = @_;
+  my %module;
+  my $perl;
+  if ( my $prereqs = eval { Module::CPANfile->load( $dir->child('cpanfile')->stringify )->prereqs } ) {
+    for my $phase (qw( runtime test )) {
+      $module{$_} = 1 for $prereqs->requirements_for( $phase, 'requires' )->required_modules;
+    }
+    $perl = $prereqs->requirements_for( 'runtime', 'requires' )->requirements_for_module('perl');
+    $perl = eval { sprintf '%.3f', version->parse($perl)->numify } // $perl if defined $perl;
+    delete $module{perl};
+  }
+  else {
+    warn "skipping the cpanfile of $dir: $@";
+  }
+  my $ini = $dir->child('dist.ini');
+  if ( -e $ini ) {
+    my $text = $ini->slurp_raw;
+    $module{'Dist::Zilla'} = 1;
+    $module{'Dist::Zilla::PluginBundle::Author::GETTY'} = 1 if $text =~ /\@Author::GETTY\b/;
+    $module{'Dist::Zilla::PluginBundle::DBIO'}         = 1 if $text =~ /\@DBIO\b/;
+  }
+  $module{'App::karr'} = 1 if -e $dir->child('.karr');
+  return ( [ keys %module ], $perl );
+}
+
+sub task_entries {
+  my ( @entries, $group );
+  for ( $task_pm->lines_utf8( { chomp => 1 } ) ) {
+    if (/^=pkgroup\s+(.+?)\s*$/) { $group = $1; next }
+    next unless /^=pkg\s+(\S+)/;
+    next if $1 eq 'perl';
+    push @entries, { module => $1, group => $group // '' };
+  }
+  return @entries;
+}
+
+# module => distribution, from the package index cpanm installs from. The
+# firewall in front of MetaCPAN turns away every request that contains
+# "javascript:", so a module like JavaScript::Minifier stays unknown.
+my %unknown;
+sub dists_of {
+  my @modules = sort grep { /javascript:/i ? !( $unknown{$_} = 1 ) : 1 } @_;
+  my %dist;
+  while ( my @batch = splice @modules, 0, 200 ) {
+    my $res = $http->post(
+      "$metacpan/package/_search",
+      {
+        headers => { 'Content-Type' => 'application/json' },
+        content => $json->encode( {
+          size    => scalar @batch,
+          query   => { terms => { module_name => \@batch } },
+          _source => [qw( module_name distribution )],
+        } ),
+      },
+    );
+    die "MetaCPAN package index: $res->{status} $res->{reason}: "
+      . substr( $res->{content} // q{}, 0, 300 ) . " (try --offline)\n"
+      unless $res->{success};
+    $dist{ $_->{_source}{module_name} } = $_->{_source}{distribution}
+      for @{ $json->decode( $res->{content} )->{hits}{hits} };
+  }
+  return %dist;
+}
+
+sub entry {
+  my ($dist) = @_;
+  my $modules = $via{$dist} // {};
+  my %units   = map { %$_ } values %$modules;
+  return {
+    dist    => $dist,
+    count   => scalar keys %units,
+    users   => [ sort keys %units ],
+    via     => { map { $_ => scalar keys %{ $modules->{$_} } } keys %$modules },
+    core    => ( grep { is_core($_) } keys %$modules ) ? 1 : 0,
+    own     => ( grep { $own{$_} } $dist, keys %$modules ) ? 1 : 0,
+    indexed => indexed( keys %$modules ),
+    module  => $dist,
+  };
+}
+
+# 1 when the CPAN index knows one of the modules, undef when that cannot be
+# told, 0 otherwise.
+sub indexed {
+  my @modules = @_;
+  return undef if $opt{offline};
+  return 1 if grep { exists $dist_of{$_} } @modules;
+  return undef if grep { $unknown{$_} } @modules;
+  return 0;
+}
+
+# Core in perl 5.20, the floor of my distributions, and still core today.
+sub is_core {
+  my ($module) = @_;
+  return Module::CoreList::is_core( $module, undef, 5.020 )
+    && Module::CoreList::is_core( $module, undef, $] ) ? 1 : 0;
+}
+
+# The latest release of a distribution and its river: how many distributions
+# on CPAN depend on it.
+sub dist_facts {
+  my ($dist) = @_;
+  my $release      = get_json("release/$dist")      // {};
+  my $distribution = get_json("distribution/$dist") // {};
+  return {
+    version    => $release->{version},
+    date       => substr( $release->{date} // '', 0, 10 ),
+    deprecated => $release->{deprecated} ? 1 : 0,
+    river      => $distribution->{river}{total} // 0,
+  };
+}
+
+sub get_json {
+  my ($endpoint) = @_;
+  my $res = $http->get("$metacpan/$endpoint");
+  return if $res->{status} == 404;
+  die "MetaCPAN $endpoint: $res->{status} $res->{reason}\n" unless $res->{success};
+  return $json->decode( $res->{content} );
+}
+
+sub print_report {
+  my ($r) = @_;
+  printf "%d projects in %d units under %s, counted by %s.\n",
+    @{$r}{qw( projects units root by )};
+  print "A family of repositories counts as one unit.\n";
+  my $floors = $r->{perl_floor};
+  printf "perl floors: %s\n",
+    join ', ', map {"$_ ($floors->{$_})"}
+    sort { $floors->{$b} <=> $floors->{$a} || $a cmp $b } keys %$floors;
+
+  print "\nIn the Task\n";
+  my $group = '';
+  for my $e ( @{ $r->{task} } ) {
+    if ( $e->{group} ne $group ) {
+      $group = $e->{group};
+      print "\n  $group\n";
+    }
+    print line($e);
+  }
+
+  printf "\nUsed by %d or more units, not core, not in the Task\n\n", $r->{min};
+  print line($_) for @{ $r->{candidates} };
+  print "  (none)\n" unless @{ $r->{candidates} };
+}
+
+sub line {
+  my ($e) = @_;
+  my @notes;
+  push @notes, $e->{dist} if $e->{dist} ne $e->{module};
+  push @notes, 'core'   if $e->{core};
+  push @notes, 'own'    if $e->{own};
+  push @notes, 'unused' if $e->{in_task} && !$e->{count};
+  push @notes, 'NOT IN THE CPAN INDEX' if defined $e->{indexed} && !$e->{indexed};
+  if ( my $c = $e->{cpan} ) {
+    push @notes, sprintf '%s (%s), river %d', @{$c}{qw( version date river )};
+    push @notes, 'DEPRECATED' if $c->{deprecated};
+  }
+  my $line = sprintf "  %5d  %-44s %s\n", $e->{count}, $e->{module}, join '; ', @notes;
+
+  my $via = $e->{via};
+  my @via = sort { $via->{$b} <=> $via->{$a} || $a cmp $b } keys %$via;
+  if ( @via > 1 || ( @via == 1 && $via[0] ne $e->{module} ) ) {
+    my @shown = map {"$_ ($via->{$_})"} splice @via, 0, 5;
+    push @shown, sprintf '%d more', scalar @via if @via;
+    $line .= sprintf "         via %s\n", join ', ', @shown;
+  }
+  $line .= sprintf "         used by %s\n", join ' ', @{ $e->{users} }
+    if $opt{verbose} && @{ $e->{users} };
+  return $line;
+}
+
+__END__
+
+=head1 NAME
+
+fingerprint - compare Task::BeLike::GETTY with what my distributions use
+
+=head1 SYNOPSIS
+
+  misc/fingerprint                # count under the parent directory of this checkout
+  misc/fingerprint --root ~/dev   # count somewhere else
+  misc/fingerprint --cpan         # add version, date, river and deprecation
+  misc/fingerprint --min 5 -v     # higher threshold, list the users
+  misc/fingerprint --offline      # without MetaCPAN, counted by module
+  misc/fingerprint --json         # the same report as JSON
+
+=head1 DESCRIPTION
+
+Reads the F<cpanfile> of every project one or two directory levels below the
+root: distributions built with C<[@Author::GETTY]> or C<[@DBIO]>, and
+applications without a F<dist.ini>. A directory that holds projects without
+being one itself is a family, and a family counts once, so a family of twenty
+drivers does not outvote everything else.
+
+Runtime and test requirements count, and so do the tools around the code: a
+F<dist.ini> counts for L<Dist::Zilla> and the plugin bundle it names, a
+F<.karr> file for L<App::karr>. A unit does not count as a user of a module it
+provides itself.
+
+Requirements are counted by CPAN distribution, looked up in one request to
+the MetaCPAN package index: L<Types::Standard> counts for Type-Tiny,
+L<HTTP::Request> for HTTP-Message. The report lists every C<=pkg> of
+F<lib/Task/BeLike/GETTY.pm> with the number of units that use its
+distribution and the modules they use it through. Then come the distributions
+that at least C<--min> units use but the Task does not list, leaving out what
+is core since perl 5.20.
+
+The numbers are the starting point for the curation, not the decision: a
+module earns its place when it is a choice that makes a distribution look like
+one of mine. Tools like L<Devel::NYTProf> never show up in a F<cpanfile> and
+stay on the list anyway.
+
+The script exits with 1 when a C<=pkg> is not in the CPAN index - a Task can
+only name what C<cpanm> can install.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--root> DIR
+
+Where the checkouts live. Defaults to the parent directory of this checkout.
+
+=item B<--min> N
+
+How many units must use a distribution before it shows up as a candidate.
+Defaults to 3.
+
+=item B<--cpan>
+
+Add the latest version, its date, the river and deprecation from MetaCPAN.
+
+=item B<--offline>
+
+Count by module, without asking MetaCPAN anything.
+
+=item B<--json>
+
+Print the report as JSON.
+
+=item B<--verbose>, B<-v>
+
+List the units that use each distribution.
+
+=back
+
+=cut

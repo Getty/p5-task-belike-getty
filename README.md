@@ -15,10 +15,12 @@ distributions are made of: not everything they depend on, but the choices that
 make a distribution of mine look like one, picked where there was something
 else to pick.
 
-The list comes from counting. I go through the `cpanfile` of every
-distribution I maintain and keep what several of them chose on purpose. Core
-modules stay out, and so does whatever only arrives as the dependency of
-something else on the list.
+The list starts with counting: [`misc/fingerprint`](misc/fingerprint) reads
+the `cpanfile` of every distribution I maintain, and I keep what several of
+them chose on purpose. Whatever only arrives as the dependency of something
+else on the list stays out, and so do core modules, unless choosing one is the
+point. On top come the tools I work with every day, which no `cpanfile` names,
+and the stack of my newest web application.
 
 A few patterns run through all of it:
 
@@ -60,6 +62,18 @@ The reason for every entry is in the
 | Infrastructure | Kubernetes::REST, IO::K8s, Rex |
 | Testing | Test::More, Test::Exception |
 | Writing and releasing distributions | Dist::Zilla, Dist::Zilla::PluginBundle::Author::GETTY, App::cpanminus, App::karr |
+
+## Keeping the list current
+
+```bash
+misc/fingerprint          # every =pkg with the number of projects using it,
+                          # then what several projects use that is not listed
+misc/fingerprint --cpan   # plus version, date and river from MetaCPAN
+```
+
+It reads the checkouts next to this one, counts a family of repositories
+once, and groups modules by CPAN distribution. It exits with 1 when an entry
+is not in the CPAN index. `misc/fingerprint --help` has the details.
 
 ## Versions
 
