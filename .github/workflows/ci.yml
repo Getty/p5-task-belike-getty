@@ -26,4 +26,4 @@ jobs:
         run: perl -V
       - name: README table matches the =pkg list
         run: perl misc/readme --check
-      - uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@main
+      - uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@v1
