@@ -24,8 +24,9 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: perl -V
         run: perl -V
-      # The listed Aliens (Alien::Libgit2, Alien::libssh) build from source with
-      # cmake against these libraries, as in the Linux CI of p5-alien-libgit2.
+      # App::karr pulls in Alien::Libgit2 and Rex::LibSSH pulls in Alien::libssh;
+      # both build from source with cmake against these libraries, as in the
+      # Linux CI of p5-alien-libgit2.
       - name: Install system packages
         run: |
           apt-get update
