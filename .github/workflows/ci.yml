@@ -24,6 +24,13 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: perl -V
         run: perl -V
+      # The listed Aliens (Alien::Libgit2, Alien::libssh) build from source with
+      # cmake against these libraries, as in the Linux CI of p5-alien-libgit2.
+      - name: Install system packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            cmake build-essential libssl-dev libssh2-1-dev zlib1g-dev pkg-config git
       - name: README table matches the =pkg list
         run: perl misc/readme --check
       - uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@v1
