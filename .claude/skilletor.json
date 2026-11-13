@@ -8,7 +8,7 @@
     "rules": [
       "engineering-discipline@getty",
       "getty-cpan-release@getty",
-      "getty-publish-gate@getty"
+      "publish-gate@getty"
     ]
   },
   "sources": {
